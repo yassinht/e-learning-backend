@@ -16,4 +16,7 @@ router.delete('/:id', coursController.deleteCours);
 
 router.get('/myCoures/:id', coursController.getMyCoursById);
 
+// GET all courses by formation ID
+router.get('/formation/:idFormation', coursController.getAllCoursesByFormation);
+
 module.exports = router;

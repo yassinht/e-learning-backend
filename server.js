@@ -8,6 +8,7 @@ const categoryRoutes = require('./routes/category.js');
 const coursRoutes = require('./routes/cours.js');
 const chapitreRoutes = require('./routes/chapitre.js');
 const formationRoutes = require('./routes/formation.js');
+const abonnementRoutes = require('./routes/abonnement.js');
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/category', categoryRoutes);
 app.use('/cours', coursRoutes);
 app.use('/chapitre', chapitreRoutes);
 app.use('/formation', formationRoutes);
+app.use('/abonnements', abonnementRoutes);
 
 // Serving static files (assuming you want to serve images from './uploads' directory)
 app.use('/getimage', express.static('./uploads'));

@@ -81,3 +81,17 @@ exports.getMyCoursById = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+// Get all courses by formation ID
+exports.getAllCoursesByFormation = async (req, res) => {
+    const idFormation = req.params.idFormation;
+
+    try {
+        const courses = await Cours.find({ formation: idFormation })
+            .populate('teacher') // Populate teacher details if needed
+            .exec();
+
+        res.status(200).json(courses);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

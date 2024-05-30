@@ -16,7 +16,8 @@ exports.createTeacher = async (req, res) => {
             lastname,
             email,
             specialization,
-            password: hashedPassword
+            password: hashedPassword,
+            image: req.file ? req.file.filename : null // Save the image filename
         });
 
         const savedTeacher = await teacher.save();
@@ -98,11 +99,18 @@ exports.getTeacherById = async (req, res) => {
     }
 };
 
-// Mettre à jour un enseignant
 exports.updateTeacher = async (req, res) => {
     try {
         const id = req.params.id;
         const newData = req.body;
+        if (newData.password) {
+            newData.password = await bcrypt.hash(newData.password, 10);
+        }
+
+        if (req.file) {
+            newData.image = req.file.filename; // Update the image field if a new image is uploaded
+        }
+
         const updatedTeacher = await Teacher.findByIdAndUpdate(id, newData, { new: true });
         res.status(200).send(updatedTeacher);
     } catch (error) {

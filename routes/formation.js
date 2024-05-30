@@ -17,4 +17,14 @@ router.put('/:id', formationController.updateFormation);
 // Get formations by createdBy ID
 router.get('/createdBy/:createdBy', formationController.getByCreatedByIdFormation);
 
+
+router.get('/:id', formationController.getFormationDetails);
+
+
+// Route to start a formation for a student
+router.post('/student/:studentId/formations/:formationId/start', formationController.startFormation);
+
+// Route to get unstarted formations for a student
+router.get('/student/:studentId/unstartedFormations', formationController.getUnstartedFormations);
+
 module.exports = router;

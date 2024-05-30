@@ -1,4 +1,4 @@
-// models/formationmodels.js
+// models/Formation.js
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 

@@ -2,6 +2,7 @@ const Formation = require('../models/formationmodels');
 const Teacher  = require('../models/teachermodels');
 const Cours = require('../models/coursmodels'); // Assuming you have a Cours model
 const Category = require('../models/categorymodels'); // Assuming the category model file is named categorymodels
+const Student = require('../models/studentmodels');
 
 // Create a formation
 // Function to create a new formation
@@ -144,3 +145,82 @@ exports.getByCreatedByIdFormation = async (req, res) => {
     }
 };
 
+exports.getFormationDetails = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const formation = await Formation.findById(id)
+        .populate('category', 'name')
+        .populate('cours', 'name description');
+  
+      if (!formation) {
+        return res.status(404).json({ error: 'Formation not found' });
+      }
+  
+      const students = await Student.find({ 'formation.cours': { $in: formation.cours } });
+  
+      const formationWithProgress = formation.toObject();
+      formationWithProgress.progress = students.map(student => {
+        const studentProgress = student.formation.find(f => f.cours.toString() === id);
+        return { student: student.name, progress: studentProgress ? studentProgress.progress : 0 };
+      });
+  
+      res.status(200).json(formationWithProgress);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+  exports.startFormation = async (req, res) => {
+    console.log('here')
+    try {
+      const { studentId, formationId } = req.params;
+  
+      // Check if the student exists
+      const student = await Student.findById(studentId);
+      if (!student) {
+        return res.status(404).json({ error: 'Student not found' });
+      }
+  
+      // Check if the formation exists
+      const formation = await Formation.findById(formationId);
+      if (!formation) {
+        return res.status(404).json({ error: 'Formation not found' });
+      }
+  
+      // Check if the student has already started this formation
+      if (student.formation.some(f => f.formationId.toString() === formationId)) {
+        return res.status(400).json({ error: 'Student has already started this formation' });
+      }
+  
+      // Add the formation to the student's formations
+      student.formation.push({ formationId });
+  
+      // Save the updated student document
+      await student.save();
+  
+      res.status(200).json({ message: 'Formation started successfully' });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+  exports.getUnstartedFormations = async (req, res) => {
+    try {
+      const { studentId } = req.params;
+  
+      // Find the student
+      const student = await Student.findById(studentId);
+      if (!student) {
+        return res.status(404).json({ error: 'Student not found' });
+      }
+  
+      // Get all formations
+      const formations = await Formation.find();
+  
+      // Filter out formations that the student has already started
+      const unstartedFormations = formations.filter(formation => !student.formation.some(f => f.formationId.toString() === formation._id.toString()));
+  
+      res.status(200).json(unstartedFormations);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+  

@@ -1,4 +1,5 @@
 const Quiz = require('../models/quizModel');
+const Certification = require('../models/Certification');
 
 exports.createQuiz = async (req, res) => {
     try {
@@ -141,37 +142,33 @@ exports.getQuizzesForFormation = async (req, res) => {
 // Submit a quiz (for students)
 exports.submitQuiz = async (req, res) => {
     try {
-        const { quizId, studentId } = req.params;
-        const { answers } = req.body; // answers should be an array of questionId and selectedOptionId
-
+        const { studentId, quizId, answers } = req.body;
         const quiz = await Quiz.findById(quizId).populate('questions');
-        if (!quiz) {
-            return res.status(404).json({ message: 'Quiz not found' });
-        }
-
-        // Calculate the result
-        let correctAnswers = 0;
-        quiz.questions.forEach(question => {
-            const answer = answers.find(a => a.questionId.toString() === question._id.toString());
-            if (answer) {
-                const correctOption = question.options.find(option => option.isCorrect);
-                if (correctOption && correctOption._id.toString() === answer.selectedOptionId) {
-                    correctAnswers++;
-                }
+        let score = 0;
+        quiz.questions.forEach((question, index) => {
+            if (question.options.find(option => option._id.equals(answers[index]) && option.isCorrect)) {
+                score += 1;
             }
         });
-
-        const result = {
-            studentId,
-            quizId,
-            totalQuestions: quiz.questions.length,
-            correctAnswers
-        };
-
-        // Optionally save the result to a database
-
-        res.status(200).json(result);
+        const newScore = new Score({
+            student: studentId,
+            quiz: quizId,
+            score
+        });
+        await newScore.save();
+        
+        // Check if score is above passing mark (assume a passing score is provided in quiz)
+        if (score >= quiz.passingScore) {
+            const certification = new Certification({
+                student: studentId,
+                formation: quiz.formations[0], // Assuming one formation per quiz
+                certifiedBy: quiz.createdBy
+            });
+            await certification.save();
+        }
+        
+        res.status(201).json(newScore);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(400).json({ error: error.message });
     }
 };
