@@ -46,7 +46,9 @@ exports.createGlobalAbonnement = async (req, res) => {
 // Get All Abonnements
 exports.getAllAbonnements = async (req, res) => {
   try {
-    const abonnements = await Abonnement.find().populate('student').populate('formation');
+    const abonnements = await Abonnement.find()
+      .populate('student')
+      .populate('formation');
     res.json(abonnements);
   } catch (error) {
     res.status(500).json({ error: error.message });
